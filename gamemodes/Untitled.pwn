@@ -2406,6 +2406,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 				    ShowPlayerDialog(playerid,dBankAccountMenuTransfer,DIALOG_STYLE_INPUT,""BLUE"Перевести деньги на другой счёт","\n"WHITE"Введите номер счёта и сумму перевода через запятую\n\n"GREY"Пример: 12345,2000\n\n","Дальше","Назад");
 				    return true;
 				}
+				if(sscanf_money < 0){
+					ShowPlayerDialog(playerid,dBankAccountMenuTransfer,DIALOG_STYLE_INPUT,""BLUE"Перевести деньги на другой счёт","\n"WHITE"Введите номер счёта и сумму перевода через запятую\n\n"GREY"Пример: 12345,2000\n\n","Дальше","Назад");
+					return true;
+				}
 				new query[61-2+11];
 				mysql_format(mysql_connection,query,sizeof(query),"select`money`from`bank_accounts`where`id`='%i'",GetPVarInt(playerid,"tempBankAccount"));
 				new Cache:cache_bank_accounts=mysql_query(mysql_connection,query);
@@ -2499,6 +2503,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 		            ShowPlayerDialog(playerid,dBankAccountMenuWithdraw,DIALOG_STYLE_INPUT,""BLUE"Снять деньги со счёта","\n"WHITE"Введите сумму, которую вы хотите снять\n\n","Дальше","Назад");
 		            return true;
 		        }
+				if(sscanf_money < 0){
+					ShowPlayerDialog(playerid,dBankAccountMenuWithdraw,DIALOG_STYLE_INPUT,""BLUE"Снять деньги со счёта","\n"WHITE"Введите сумму, которую вы хотите снять\n\n","Дальше","Назад");
+					return true;
+				}
 		        new query[103-2-2-2-2-2+11+11+11+16+11];
 		        mysql_format(mysql_connection,query,sizeof(query),"select`money`from`bank_accounts`where`id`='%i'",GetPVarInt(playerid,"tempBankAccount"));
 		        new Cache:cache_bank_accounts=mysql_query(mysql_connection,query);
@@ -2547,7 +2555,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 		            ShowPlayerDialog(playerid,dBankAccountMenuDeposit,DIALOG_STYLE_INPUT,""BLUE"Положить деньги на счёт","\n"WHITE"Введите сумму, которую хотите положить на счёт\n\n","Дальше","Назад");
 		            return true;
 		        }
-		        if(player[playerid][money]<sscanf_money){
+		        if(player[playerid][money]<sscanf_money || sscanf_money < 0){
 		            ShowPlayerDialog(playerid,dBankAccountMenuDeposit,DIALOG_STYLE_INPUT,""BLUE"Положить деньги на счёт","\n"RED"У вас нет столько средств на руках!\n\n"WHITE"Введите сумму, которую хотите положить на счёт\n\n","Дальше","Назад");
 		            return true;
 		        }
@@ -5177,7 +5185,7 @@ public OnPlayerKeyStateChange(playerid,newkeys,oldkeys){
                 }
 			}
 			if(IsPlayerInDynamicArea(playerid,area[JOB_LOADER_NPC])){
-				ShowPlayerDialog(playerid,dJobLoader,DIALOG_STYLE_LIST,""BLUE"Диалог","[0] - Здравствуй, что здесь происходит?\n[1] - Что я смогу здесь получить?[2] - Я хочу взять работу![3] - Я хочу забрать деньги за работу!","Выбрать","Отмена");
+				ShowPlayerDialog(playerid,dJobLoader,DIALOG_STYLE_LIST,""BLUE"Диалог","[0] - Здравствуй, что здесь происходит?\n[1] - Что я смогу здесь получить?\n[2] - Я хочу взять работу!\n[3] - Я хочу забрать деньги за работу!","Выбрать","Отмена");
 			    return true;
 			}
 			if(IsPlayerInDynamicArea(playerid,area[JOB_LOADER_CLOTHES])){
@@ -7161,7 +7169,7 @@ CMD:admins(playerid){
 	    SendClientMessage(playerid,C_RED,"[Информация] Вы не имеете доступ к этой команде!");
 	    return true;
 	}
-	new Cache:admins=mysql_query(mysql_connection,"select`name`from`admins");
+	new Cache:admins=mysql_query(mysql_connection,"select`name`from`admins`");
 	if(cache_get_row_count(mysql_connection)){
 	    new temp_name[MAX_PLAYER_NAME],temp_playerid,temp_online[41],temp_id,temp_date[24];
 	    new query[67-2+11];
@@ -7744,7 +7752,7 @@ CMD:givecmd_id(playerid){
 	new temp_string[8-2-2+2+sizeof(admin_commands)];
 	new string[sizeof(temp_string)*MAX_ADMIN_COMMANDS];
 	for(new i=0; i<MAX_ADMIN_COMMANDS; i++){
-	    format(temp_string,sizeof(temp_string),"[%i] %s",i,admin_commands[i]);
+	    format(temp_string,sizeof(temp_string),"[%i] %s\n",i,admin_commands[i]);
 	    strcat(string,temp_string);
 	}
 	ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_TABLIST,""BLUE"Команды администратора",string,"Закрыть","");
