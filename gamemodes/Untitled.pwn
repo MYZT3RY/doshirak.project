@@ -28,7 +28,7 @@ main();
 #define MYSQL_HOST "localhost" // Сервер, к которому нужно подключаться
 #define MYSQL_USER "root" // Пользователь, под которым нужно заходить
 #define MYSQL_DATABASE "doshirak" // База, которая открывается
-#define MYSQL_PASSWORD "vallintane" // Пароль от пользователя
+#define MYSQL_PASSWORD "" // Пароль от пользователя
 new mysql_connection; // Статус подключения
 
 // Прочее
@@ -4791,22 +4791,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
                     ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_MSGBOX,""RED"Ошибка","\n"WHITE"Вы находитесь далеко от личного транспорта!\n\n","Закрыть","");
 				    return true;
 				}
-				vehicle[temp_vehicleid][locked]=vehicle[temp_vehicleid][locked]?0:1;
-				GameTextForPlayer(playerid,vehicle[temp_vehicleid][locked]?"~w~vehicle doors ~r~closed":"~w~vehicle doors ~g~opened",1500,3);
-	            new temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective;
-				GetVehicleParamsEx(vehicle[temp_vehicleid][id],temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective);
-				SetVehicleParamsEx(vehicle[temp_vehicleid][id],temp_engine,temp_lights,temp_alarm,vehicle[temp_vehicleid][locked],temp_bonnet,temp_boot,temp_objective);
-				if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER){
-				    PlayerTextDrawHide(playerid,td_speed[playerid][TD_SPEED_DOORS]);
-					if(vehicle[temp_vehicleid][locked]){
-					    PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_DOORS],C_RED);
-					}
-					else{
-					    PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_DOORS],C_GREEN);
-					}
-				    PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_DOORS],vehicle[temp_vehicleid][locked]?C_RED:C_GREEN);
-					PlayerTextDrawShow(playerid,td_speed[playerid][TD_SPEED_DOORS]);
-				}
+				lockOfVehicle(temp_vehicleid,playerid);
 		    }
 		}
 		case dJobLoader:{
@@ -6152,16 +6137,10 @@ IsValidVehicle(vehicleid){
 	    new temp[32];
 	    format(temp,sizeof(temp),"/ame завёл двигатель транспорта");
 		DC_CMD(playerid,temp);
-	    for(new i=0; i<MAX_VEHICLES; i++){
-	        if(vehicle[i][id] == vehicleid){
-	            vehicleid=i;
-	            break;
-	        }
-	    }
 	    PlayerTextDrawHide(playerid,td_speed[playerid][TD_SPEED_FUEL]);
 	    PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_FUEL],C_GREY);
 	    PlayerTextDrawShow(playerid,td_speed[playerid][TD_SPEED_FUEL]);
-	    timer_speed[playerid]=SetTimerEx("@__speed",150,false,"i",playerid,vehicleid);
+	    timer_speed[playerid]=SetTimerEx("@__speed",150,false,"i",playerid);
 	}
 	return true;
 }
@@ -6231,6 +6210,27 @@ GetVehicleSpeed(temp_vehicleid){
 	GetVehicleVelocity(temp_vehicleid,temp_x,temp_y,temp_z);
 	temp_result=floatsqroot(floatpower(floatabs(temp_x),2.0)+floatpower(floatabs(temp_y),2.0)+floatpower(floatabs(temp_z),2.0))*100.3;
 	return floatround(temp_result);
+}
+
+lockOfVehicle(vehicleid,playerid=-1){
+	vehicle[vehicleid][locked]=vehicle[vehicleid][locked]?0:1;
+	new temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective;
+	GetVehicleParamsEx(vehicle[vehicleid][id],temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective);
+	SetVehicleParamsEx(vehicle[vehicleid][id],temp_engine,temp_lights,temp_alarm,vehicle[vehicleid][locked],temp_bonnet,temp_boot,temp_objective);
+	if(playerid != -1){
+		GameTextForPlayer(playerid,vehicle[vehicleid][locked]?"~w~vehicle doors ~r~closed":"~w~vehicle doors ~g~opened",1500,3);
+		if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER){
+			PlayerTextDrawHide(playerid,td_speed[playerid][TD_SPEED_DOORS]);
+			if(vehicle[vehicleid][locked]){
+				PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_DOORS],C_RED);
+			}
+			else{
+				PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_DOORS],C_GREEN);
+			}
+			PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_DOORS],vehicle[vehicleid][locked]?C_RED:C_GREEN);
+			PlayerTextDrawShow(playerid,td_speed[playerid][TD_SPEED_DOORS]);
+		}
+	}
 }
 
 /*      ------------------      */
@@ -7065,7 +7065,12 @@ CMD:lock(playerid,params[]){
 	            return true;
 	        }
 			if(IsPlayerInAnyVehicle(playerid)){
-				
+				for(new i=0; i<MAX_OWNED_VEHICLES; i++){
+					if(GetPlayerVehicleID(playerid) == vehicle[owned_vehicle_id[playerid][i]][id]){
+						lockOfVehicle(owned_vehicle_id[playerid][i],playerid);
+						break;
+					}
+				}
 			}
 			else{
 				new temp_string[22-2-2-2+2+32+3];
