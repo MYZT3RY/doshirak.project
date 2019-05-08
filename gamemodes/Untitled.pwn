@@ -7065,8 +7065,9 @@ CMD:lock(playerid,params[]){
 	            return true;
 	        }
 			if(IsPlayerInAnyVehicle(playerid)){
+				new temp_vehicleid=GetPlayerVehicleID(playerid);
 				for(new i=0; i<MAX_OWNED_VEHICLES; i++){
-					if(GetPlayerVehicleID(playerid) == vehicle[owned_vehicle_id[playerid][i]][id]){
+					if(temp_vehicleid == vehicle[owned_vehicle_id[playerid][i]][id]){
 						lockOfVehicle(owned_vehicle_id[playerid][i],playerid);
 						break;
 					}
