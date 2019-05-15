@@ -41,7 +41,7 @@ new mysql_connection; // Статус подключения
 #define MAX_HOUSES (512)//Максимальное количество домов
 #define MAX_HOUSE_INTERIORS (8)//Максимальное количество интерьеров для домов
 #define MAX_FACTIONS (2)//Максимальное количество фракций
-#define MAX_ADMIN_COMMANDS (15)//Максимальное количество команд администраторов
+#define MAX_ADMIN_COMMANDS (16)//Максимальное количество команд администраторов
 #define MAX_OWNED_HOUSES (4)//Максимальное количество купленых домов одним владельцем
 #define MAX_RANKS_IN_FACTION (11)//Максимальное количество рангов во фракции
 #undef MAX_VEHICLES//Удаляем дефайн
@@ -518,11 +518,12 @@ enum admin_commandsINFO{
 	UNBANIP,
 	DELACC,
 	GOTO,
-	GETHERE
+	GETHERE,
+	GETSTATS
 }
 
 static const admin_commands[MAX_ADMIN_COMMANDS][24]={
-	"/admins","/makeleader","/achat","/find","/apanel","/mute","/ban","/unban","/getip","/getregip","/banip","/unbanip","/delacc","/goto","/gethere"
+	"/admins","/makeleader","/achat","/find","/apanel","/mute","/ban","/unban","/getip","/getregip","/banip","/unbanip","/delacc","/goto","/gethere","/getstats"
 };
 
 enum vehiclesINFO{
@@ -1088,7 +1089,7 @@ public OnGameModeInit(){// Запускаем игровой мод
 	}
 	cache_delete(cache_businesses,mysql_connection);
 //	mysql_log(LOG_NONE);
-	SetGameModeText("DSHRK v0.033.r3");//Ставим название мода для клиента
+	SetGameModeText("DSHRK v0.034.r3");//Ставим название мода для клиента
 	SendRconCommand("hostname DOSHIRAK PROJECT");//Ставим название сервера для клиента через RCON
 	SendRconCommand("weburl vk.com/d1maz.community");
 	SendRconCommand("language Russian");
@@ -1872,92 +1873,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 		    if(response){
 		        switch(listitem){
 			        case 0:{
-			            new temp_gender[8];
-			            temp_gender=player[playerid][gender]?"Мужской":"Женский";
-						static houses[16+MAX_OWNED_HOUSES*(22-2+11)];
-						houses=""WHITE"Жильё - ";
-						if(!owned_house_id[playerid][0]){
-						    strcat(houses,""BLUE"бездомный\n");
-						}
-						else{
-							new temp[22-2+11];
-							for(new i=0; i<MAX_OWNED_HOUSES; i++){
-							    if(!owned_house_id[playerid][i]){
-							        continue;
-							    }
-							    if(!i){
-							    	format(temp,sizeof(temp),""BLUE"\t[ H-ID %i ]\n",owned_house_id[playerid][i]);
-								}
-								else{
-								    format(temp,sizeof(temp),"\t\t[ H-ID %i ]\n",owned_house_id[playerid][i]);
-								}
-								strcat(houses,temp);
-							}
-						}
-						static vehicles[20+MAX_OWNED_VEHICLES*(25-2-2+24+11)];
-						vehicles=""WHITE"Транспорт - ";
-						if(owned_vehicle_id[playerid][0] == -1){
-						    strcat(vehicles,""BLUE"отсутствует\n");
-						}
-						else{
-							new temp[25-2-2+24+11];
-							for(new i=0; i<MAX_OWNED_VEHICLES; i++){
-							    if(owned_vehicle_id[playerid][i] == -1){
-							        continue;
-							    }
-							    if(!i){
-							        format(temp,sizeof(temp),""BLUE"\t[ %s V-ID %i ]\n",transport[vehicle[owned_vehicle_id[playerid][i]][model]-400][name],vehicle[owned_vehicle_id[playerid][i]][mysql_id]);
-							    }
-							    else{
-							        format(temp,sizeof(temp),"\t\t[ %s V-ID %i ]\n",transport[vehicle[owned_vehicle_id[playerid][i]][model]-400][name],vehicle[owned_vehicle_id[playerid][i]][mysql_id]);
-							    }
-							    strcat(vehicles,temp);
-							}
-						}
-						static businesses[18+MAX_OWNED_BUSINESSES*(25-2-2+32+11)];
-						businesses=""WHITE"Бизнесы - ";
-						if(!owned_business_id[playerid][0]){
-						    strcat(businesses,""BLUE"отсутствуют\n");
-						}
-						else{
-							new temp[25-2-2+32+11];
-							for(new i=0; i<MAX_OWNED_BUSINESSES; i++){
-							    if(!owned_business_id[playerid][i]){
-							        continue;
-							    }
-							    if(!i){
-							    	format(temp,sizeof(temp),""BLUE"\t[ %s B-ID %i ]\n",business[owned_business_id[playerid][i]-1][name],owned_business_id[playerid][i]);
-								}
-								else{
-								    format(temp,sizeof(temp),"\t\t[ %s B-ID %i ]\n",business[owned_business_id[playerid][i]-1][name],owned_business_id[playerid][i]);
-								}
-								strcat(businesses,temp);
-							}
-						}
-						new main_bank_account[23+24-2-2+32+11];
-						strcat(main_bank_account,""WHITE"Основной счёт - ");
-						new query[89-2+MAX_PLAYER_NAME];
-						mysql_format(mysql_connection,query,sizeof(query),"select`id`,`description`from`bank_accounts`where`owner`='%e'and`main`='1'limit 1",player[playerid][name]);
-						new Cache:cache_bank_accounts=mysql_query(mysql_connection,query);
-						if(cache_get_row_count(mysql_connection)){
-						    new temp_id=cache_get_field_content_int(0,"id",mysql_connection);
-						    new temp_description[32];
-						    cache_get_field_content(0,"description",temp_description,mysql_connection,sizeof(temp_description));
-						    new temp[26-2-2+32+11];
-						    format(temp,sizeof(temp),""BLUE"[ %s BA-ID %i ]\n",temp_description,temp_id);
-						    strcat(main_bank_account,temp);
-						}
-						else{
-						    strcat(main_bank_account,""BLUE"отсутствует\n");
-						}
-						cache_delete(cache_bank_accounts,mysql_connection);
-						static string[113-2-2-2-2-2-2-2-2+3+24+8+11+6+11+11+sizeof(houses)+sizeof(vehicles)+sizeof(businesses)+sizeof(main_bank_account)];
-			            format(string,sizeof(string),"\n"WHITE"Возраст - "BLUE"%i лет\n"WHITE"Раса - "BLUE"%s\n"WHITE"Пол - "BLUE"%s\n\n"WHITE"Наличные - "GREEN"$%i\n%s\n"WHITE"Опыт - "BLUE"%i (%i / %i)\n\n%s\n%s\n%s\n",player[playerid][age],origins[player[playerid][origin]-1],temp_gender,player[playerid][money],main_bank_account,player[playerid][level],player[playerid][experience],player[playerid][level]*NEEDED_EXPERIENCE,houses,businesses,vehicles);
-			            ShowPlayerDialog(playerid,dMainMenuInfAboutPersCharacter,DIALOG_STYLE_MSGBOX,""BLUE"Информация о персонаже",string,"Назад","");
-			            string="";
-			            houses="";
-			            vehicles="";
-			            businesses="";
+			            showStats(playerid,playerid);
 			        }
 			        case 1:{
 			            new string[195-2-2-2-2-2+11+MAX_PLAYER_NAME+MAX_EMAIL_LEN+MAX_PROMOCODE_LEN+20];
@@ -6233,6 +6149,161 @@ lockOfVehicle(vehicleid,playerid=-1){
 	}
 }
 
+showStats(playerid,temp_playerid,Cache:cache_users=Cache:0){
+	static houses[16+MAX_OWNED_HOUSES*(22-2+11)];
+	houses=""WHITE"Жильё - ";
+	static vehicles[20+MAX_OWNED_VEHICLES*(25-2-2+24+11)];
+	vehicles=""WHITE"Транспорт - ";
+	new temp_str_gender[8];
+	static businesses[18+MAX_OWNED_BUSINESSES*(25-2-2+32+11)];
+	businesses=""WHITE"Бизнесы - ";
+	new temp_gender, temp_name[MAX_PLAYER_NAME], temp_age, temp_origin, temp_money, temp_level, temp_experience;
+	new temp_owned_houses[MAX_OWNED_HOUSES]={0}, temp_owned_businesses[MAX_OWNED_BUSINESSES]={0}, temp_owned_vehicles[MAX_OWNED_VEHICLES]={-1};
+	if(temp_playerid == -1){
+		SendClientMessage(playerid,-1,"temp_playerid = -1");
+		cache_set_active(cache_users,mysql_connection);
+		cache_get_field_content(0,"name",temp_name,mysql_connection,MAX_PLAYER_NAME);
+		temp_gender=cache_get_field_content_int(0,"gender",mysql_connection);
+		temp_age=cache_get_field_content_int(0,"age",mysql_connection);
+		temp_origin=cache_get_field_content_int(0,"origin",mysql_connection);
+		temp_money=cache_get_field_content_int(0,"money",mysql_connection);
+		temp_level=cache_get_field_content_int(0,"level",mysql_connection);
+		temp_experience=cache_get_field_content_int(0,"experience",mysql_connection);
+		cache_delete(cache_users,mysql_connection);
+		new query[44-2+MAX_PLAYER_NAME];
+		mysql_format(mysql_connection,query,sizeof(query),"select`id`from`houses`where`owner`='%e'",temp_name);		
+		new Cache:cache_houses=mysql_query(mysql_connection,query,true);
+		if(cache_get_row_count(mysql_connection)){
+			for(new i=0; i<cache_get_row_count(mysql_connection); i++){
+				temp_owned_houses[i]=cache_get_field_content_int(i,"id",mysql_connection);
+			}
+		}
+		cache_delete(cache_houses,mysql_connection);
+		mysql_format(mysql_connection,query,sizeof(query),"select`id`from`vehicles`where`owner`='%e'",temp_name);
+		new Cache:cache_vehicles=mysql_query(mysql_connection,query,true);
+		if(cache_get_row_count(mysql_connection)){
+			new temp_id;
+			for(new i=0; i<cache_get_row_count(mysql_connection); i++){
+				temp_id=cache_get_field_content_int(i,"id",mysql_connection);
+				for(new j=0; j<MAX_VEHICLES; j++){
+					if(vehicle[j][mysql_id] == temp_id){
+						temp_owned_vehicles[i]=j;
+					}
+				}
+			}
+		}
+		cache_delete(cache_vehicles,mysql_connection);
+		mysql_format(mysql_connection,query,sizeof(query),"select`id`from`businesses`where`owner`='%e'",temp_name);		
+		new Cache:cache_businesses=mysql_query(mysql_connection,query,true);
+		if(cache_get_row_count(mysql_connection)){
+			for(new i=0; i<MAX_OWNED_BUSINESSES; i++){
+				temp_owned_businesses[i]=cache_get_field_content_int(i,"id",mysql_connection);
+				printf(temp_owned_businesses[i]);
+			}
+		}
+		cache_delete(cache_businesses,mysql_connection);
+	}
+	else{
+		SendClientMessage(playerid,-1,"temp_playerid = 0-999");
+		strmid(temp_name,player[temp_playerid][name],0,strlen(player[temp_playerid][name]));
+		temp_gender=player[temp_playerid][gender];
+		temp_age=player[temp_playerid][age];
+		temp_origin=player[temp_playerid][origin];
+		temp_money=player[temp_playerid][money];
+		temp_level=player[temp_playerid][level];
+		temp_experience=player[temp_playerid][experience];
+		for(new i=0; i<MAX_OWNED_HOUSES; i++){
+			temp_owned_houses[i]=owned_house_id[temp_playerid][i];
+		}
+		for(new i=0; i<MAX_OWNED_VEHICLES; i++){
+			temp_owned_vehicles[i]=owned_vehicle_id[temp_playerid][i];
+		}
+		for(new i=0; i<MAX_OWNED_BUSINESSES; i++){
+			temp_owned_businesses[i]=owned_business_id[temp_playerid][i];
+		}
+	}
+	if(!temp_owned_houses[0]){
+		strcat(houses,""BLUE"бездомный\n");
+	}
+	else{
+		new temp[22-2+11];
+		for(new i=0; i<MAX_OWNED_HOUSES; i++){
+			if(!temp_owned_houses[i]){
+				continue;
+			}
+			if(!i){
+				format(temp,sizeof(temp),""BLUE"\t[ H-ID %i ]\n",temp_owned_houses[i]);
+			}
+			else{
+				format(temp,sizeof(temp),"\t\t[ H-ID %i ]\n",temp_owned_houses[i]);
+			}
+			strcat(houses,temp);
+		}
+	}
+	if(temp_owned_vehicles[0] == -1){
+		strcat(vehicles,""BLUE"отсутствует\n");
+	}
+	else{
+		new temp[25-2-2+24+11];
+		for(new i=0; i<MAX_OWNED_VEHICLES; i++){
+			if(temp_owned_vehicles[i] == -1){
+				continue;
+			}
+			if(!i){
+				format(temp,sizeof(temp),""BLUE"\t[ %s V-ID %i ]\n",transport[vehicle[temp_owned_vehicles[i]][model]-400][name],vehicle[temp_owned_vehicles[i]][mysql_id]);
+			}
+			else{
+				format(temp,sizeof(temp),"\t\t[ %s V-ID %i ]\n",transport[vehicle[temp_owned_vehicles[i]][model]-400][name],vehicle[temp_owned_vehicles[i]][mysql_id]);
+			}
+			strcat(vehicles,temp);
+		}
+	}
+	if(!temp_owned_businesses[0]){
+		strcat(businesses,""BLUE"отсутствуют\n");
+	}
+	else{
+		new temp[25-2-2+32+11];
+		for(new i=0; i<MAX_OWNED_BUSINESSES; i++){
+			if(!temp_owned_businesses[i]){
+				continue;
+			}
+			if(!i){
+				format(temp,sizeof(temp),""BLUE"\t[ %s B-ID %i ]\n",business[temp_owned_businesses[i]-1][name],temp_owned_businesses[i]);
+			}
+			else{
+				format(temp,sizeof(temp),"\t\t[ %s B-ID %i ]\n",business[temp_owned_businesses[i]-1][name],temp_owned_businesses[i]);
+			}
+			strcat(businesses,temp);
+		}
+	}
+	format(temp_str_gender,sizeof(temp_str_gender),temp_gender?"Мужской":"Женский");
+	new main_bank_account[23+24-2-2+32+11];
+	strcat(main_bank_account,""WHITE"Основной счёт - ");
+	new query[89-2+MAX_PLAYER_NAME];
+	mysql_format(mysql_connection,query,sizeof(query),"select`id`,`description`from`bank_accounts`where`owner`='%e'and`main`='1'limit 1",temp_name);
+	new Cache:cache_bank_accounts=mysql_query(mysql_connection,query);
+	if(cache_get_row_count(mysql_connection)){
+		new temp_id=cache_get_field_content_int(0,"id",mysql_connection);
+		new temp_description[32];
+		cache_get_field_content(0,"description",temp_description,mysql_connection,sizeof(temp_description));
+		new temp[26-2-2+32+11];
+		format(temp,sizeof(temp),""BLUE"[ %s BA-ID %i ]\n",temp_description,temp_id);
+		strcat(main_bank_account,temp);
+	}
+	else{
+		strcat(main_bank_account,""BLUE"отсутствует\n");
+	}
+	cache_delete(cache_bank_accounts,mysql_connection);
+	static string[113-2-2-2-2-2-2-2-2+3+24+8+11+6+11+11+sizeof(houses)+sizeof(vehicles)+sizeof(businesses)+sizeof(main_bank_account)];
+	format(string,sizeof(string),"\n"WHITE"Возраст - "BLUE"%i лет\n"WHITE"Раса - "BLUE"%s\n"WHITE"Пол - "BLUE"%s\n\n"WHITE"Наличные - "GREEN"$%i\n%s\n"WHITE"Опыт - "BLUE"%i (%i / %i)\n\n%s\n%s\n%s\n",temp_age,origins[temp_origin-1],temp_str_gender,temp_money,main_bank_account,temp_level,temp_experience,temp_level*NEEDED_EXPERIENCE,houses,businesses,vehicles);
+	ShowPlayerDialog(playerid,dMainMenuInfAboutPersCharacter,DIALOG_STYLE_MSGBOX,""BLUE"Информация о персонаже",string,"Назад","");
+	SendClientMessage(playerid,-1,"ShowPlayerDialog");
+	string="";
+	houses="";
+	vehicles="";
+	businesses="";
+}
+
 /*      ------------------      */
 
 /*      Команды сервера         */
@@ -7688,6 +7759,36 @@ CMD:gethere(playerid,params[]){
 	GetPlayerPos(playerid,temp_x,temp_y,temp_z);
 	SetPlayerPos(temp_playerid,temp_x+1.0,temp_y+1.0,temp_z);
 	SendClientMessage(temp_playerid,C_BLUE,"[Информация] Вы были телепортированы администратором сервера!");
+	return true;
+}
+
+CMD:getstats(playerid,params[]){
+	if(!admin[playerid][commands][GETSTATS]){
+		SendClientMessage(playerid,C_RED,"[Информация] Вы не имеете доступ к этой команде!");
+		return true;
+	}
+	new temp_name[MAX_PLAYER_NAME];
+	if(sscanf(params,"s[128]",temp_name)){
+		SendClientMessage(playerid,C_GREY,"Используйте: /getstats [ id игрока/никнейм ]");
+		return true;
+	}
+	new temp_playerid;
+	sscanf(temp_name,"u",temp_playerid);
+	if(GetPVarInt(temp_playerid,"PlayerLogged")){
+		showStats(playerid,temp_playerid);
+	}
+	else{
+		new query[42-2+MAX_PLAYER_NAME];
+		mysql_format(mysql_connection,query,sizeof(query),"select*from`users`where`name`='%e'limit 1",temp_name);		
+		new Cache:cache_users=mysql_query(mysql_connection,query,true);
+		if(cache_get_row_count(mysql_connection)){
+			showStats(playerid,-1,cache_users);
+		}
+		else{
+			SendClientMessage(playerid,C_RED,"[Информация] Аккаунт не найден в базе данных!");
+			cache_delete(cache_users,mysql_connection);
+		}
+	}
 	return true;
 }
 
