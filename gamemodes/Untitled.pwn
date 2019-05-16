@@ -5516,7 +5516,9 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid){
 				    new temp_commands[64];
 				    admin[playerid][id]=cache_get_field_content_int(0,"id",mysql_connection);
 				    cache_get_field_content(0,"commands",temp_commands,mysql_connection,sizeof(temp_commands));
-				    sscanf(temp_commands,"p<|>a<i>[15]",admin[playerid][commands]);
+					new temp_sscanf[13-2+2];
+					format(temp_sscanf,sizeof(temp_sscanf),"p<|>a<i>[%i]",MAX_ADMIN_COMMANDS);					
+				    sscanf(temp_commands,temp_sscanf,admin[playerid][commands]);
 				    cache_get_field_content(0,"password",admin[playerid][password],mysql_connection,16);
 				    if(!strcmp(admin[playerid][password],"-")){
 				        ShowPlayerDialog(playerid,dAdminPasswordCreate,DIALOG_STYLE_INPUT,""BLUE"Установка пароля Администратора","\n"WHITE"Введите желаемый пароль для авторизации в админ-панели\n\n","Дальше","Выход");
