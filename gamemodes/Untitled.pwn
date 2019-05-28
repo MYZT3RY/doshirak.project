@@ -4,7 +4,7 @@
 /*      Инклуды     */
 
 #include <a_samp>
-main();
+main(){}
 #include <a_mysql>
 #include <sscanf2>
 #include <regex>
@@ -13,7 +13,7 @@ main();
 #include <doshirak\objects>//Объекты сервера
 #include <dc_cmd>
 #include <foreach>
-#include <doshirak\colors>//Дефайн	ы цветов
+#include <doshirak\colors>//Дефайны цветов
 #include <doshirak\3dtexts>//3Д тексты сервера
 #include <doshirak\pickups>//Пикапы сервера
 #include <a_actor>
@@ -1094,8 +1094,8 @@ public OnGameModeInit(){// Запускаем игровой мод
 	SendRconCommand("weburl vk.com/d1maz.community");
 	SendRconCommand("language Russian");
 	SendRconCommand("mapname San Andreas");
-	timer_general=SetTimer("@__general_timer",1000,false);
-	timer_minute=SetTimer("@__minute_timer",60000,false);
+	timer_general=SetTimer("general_timer",1000,false);
+	timer_minute=SetTimer("minute_timer",60000,false);
 	gettime(global__time_hour,_,_);
 	SetWorldTime(global__time_hour);
 	LoadObjects();
@@ -1117,7 +1117,7 @@ public OnPlayerRequestClass(playerid,classid){
 		new string[66-2-2+16+MAX_PLAYER_NAME];
 		format(string,sizeof(string),"\n"WHITE"IP адрес - "BLUE"%s\n"WHITE"Администратор - "BLUE"%s\n\n",temp_ip,temp_adminname);
 		ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_MSGBOX,""RED"Ваш IP адрес заблокирован",string,"Закрыть","");
-		SetTimerEx("@__kick_player",250,false,"i",playerid);
+		SetTimerEx("kick_player",250,false,"i",playerid);
         return true;
     }
     cache_delete(cache_banip,mysql_connection);
@@ -1139,7 +1139,7 @@ public OnPlayerRequestClass(playerid,classid){
 		        strcat(string,temp_string);
 		    }
 		    ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_MSGBOX,""RED"Ваш аккаунт заблокирован",string,"Закрыть","");
-		    SetTimerEx("@__kick_player",250,false,"i",playerid);
+		    SetTimerEx("kick_player",250,false,"i",playerid);
 		    return true;
 		}
 		else{
@@ -1186,7 +1186,7 @@ public OnPlayerConnect(playerid){// Подключаемся к серверу
 		if(!strcmp(check_ip_for_reconnect[i],temp_ip)){//Если одна из итераций в переменной совпала с глобальной переменной
 		    if(gettime()-check_ip_for_reconnect_time[i]<20){//И если полученное время оказалось меньше 20-ти, то...
 		        SendClientMessage(playerid,C_RED,"[Информация] Вы были кикнуты сервером! Причина: Anti Reconnect");
-		        SetTimerEx("@__kick_player",250,false,"i",playerid);//Кикаем игрока
+		        SetTimerEx("kick_player",250,false,"i",playerid);//Кикаем игрока
 		        break;//Выходим из функции
 		    }
 		}
@@ -2977,10 +2977,10 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 				mysql_query(mysql_connection,query,false);
 				SendClientMessage(playerid,C_GREEN,"Вы установили пароль для авторизации в админ-панели!");
 				SendClientMessage(playerid,C_GREEN,"Вам необходимо перезайти на сервер!");
-				SetTimerEx("@__kick_player",200,false,"i",playerid);
+				SetTimerEx("kick_player",200,false,"i",playerid);
 		    }
 		    else{
-		        SetTimerEx("@__kick_player",200,false,"i",playerid);
+		        SetTimerEx("kick_player",200,false,"i",playerid);
 		    }
 		}
 		case dAdminPasswordInput:{
@@ -3004,11 +3004,11 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 				}
 				else{
 				    SendClientMessage(playerid,C_RED,"[Информация] Вы ввели неправильный пароль для авторизации в админ-панели!");
-                    SetTimerEx("@__kick_player",200,false,"i",playerid);
+                    SetTimerEx("kick_player",200,false,"i",playerid);
 				}
 		    }
 		    else{
-                SetTimerEx("@__kick_player",200,false,"i",playerid);
+                SetTimerEx("kick_player",200,false,"i",playerid);
 		    }
 		}
 		case dHome:{
@@ -4743,7 +4743,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 public OnPlayerSpawn(playerid){
 	if(!GetPVarInt(playerid,"PlayerLogged")){
 	    SendClientMessage(playerid,C_RED,"[Информация] Вы должны авторизоваться!");
-	    SetTimerEx("@__kick_player",250,false,"i",playerid);
+	    SetTimerEx("kick_player",250,false,"i",playerid);
 	    return true;
 	}
 	if(GetPVarInt(playerid,"InteriorID")!=-1){
@@ -5197,7 +5197,7 @@ public OnPlayerStateChange(playerid,newstate,oldstate){
 			    PlayerTextDrawShow(playerid,td_speed[playerid][TD_SPEED_FUEL]);
 			}
 			else{
-			    timer_speed[playerid]=SetTimerEx("@__speed",150,false,"i",playerid,temp_vehicleid);
+			    timer_speed[playerid]=SetTimerEx("speed",150,false,"i",playerid,temp_vehicleid);
 			}
 		}
 	}
@@ -5546,7 +5546,7 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid){
 				ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_MSGBOX,"Авторизация",string,"Закрыть","");
 				if(!temp_attemps){
 				    ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_MSGBOX,"Авторизация","\n"WHITE"Вы ввели неправильный пароль три раза и были кикнуты!\n\n","Закрыть","");
-				    SetTimerEx("@__kick_player",250,false,"i",playerid);
+				    SetTimerEx("kick_player",250,false,"i",playerid);
 				    return true;
 				}
 				SetPVarInt(playerid,"PasswordAttempts",temp_attemps);
@@ -5782,14 +5782,14 @@ public OnVehicleDeath(vehicleid,killerid){
 
 /*      Кастомные каллбеки      */
 
-@__kick_player(playerid);
-@__kick_player(playerid){
+forward kick_player(playerid);
+public kick_player(playerid){
 	Kick(playerid);
 	return true;
 }
 
-@__general_timer();
-@__general_timer(){
+forward general_timer();
+public general_timer(){
 	foreach(new i:Player){
 	    if(GetPVarInt(i,"PlayerLogged")){
 	        if(payday[i][time]>=PAYDAY_TIME && !payday[i][taken]){
@@ -5807,12 +5807,11 @@ public OnVehicleDeath(vehicleid,killerid){
 	if(global__time_hour!=temp_hour){
 		SetWorldTime(global__time_hour=temp_hour);
 	}
-	timer_general=SetTimer("@__general_timer",1000,false);
+	timer_general=SetTimer("general_timer",1000,false);
 	return true;
 }
 
-@__payday(playerid);
-@__payday(playerid){
+get_payday(playerid){
 	if(GetPVarInt(playerid,"PlayerLogged")){
 		if(payday[playerid][time]<PAYDAY_TIME && !payday[playerid][taken]){
 		    return true;
@@ -6014,8 +6013,8 @@ SendSplitClientMessage(playerid, color, text[], minlen = 0, maxlen = 128){
     }
 }
 
-@__minute_timer();
-@__minute_timer(){
+forward minute_timer();
+public minute_timer(){
 	foreach(new i:Player){
 		if(!GetPVarInt(i,"PlayerLogged")){
 		    continue;
@@ -6032,7 +6031,7 @@ SendSplitClientMessage(playerid, color, text[], minlen = 0, maxlen = 128){
 	    mysql_format(mysql_connection,query,sizeof(query),"update`vehicles`set`fuel`='%f',`mileage`='%f',`locked`='%i'where`id`='%i'",vehicle[i][fuel],vehicle[i][mileage],vehicle[i][locked],vehicle[i][mysql_id]);
 	    mysql_query(mysql_connection,query,false);
 	}
-	timer_minute=SetTimer("@__minute_timer",60000,false);
+	timer_minute=SetTimer("minute_timer",60000,false);
 }
 
 IsValidVehicle(vehicleid){
@@ -6047,8 +6046,8 @@ IsValidVehicle(vehicleid){
 	return false;
 }
 
-@__engine_turn_on(playerid,temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective);
-@__engine_turn_on(playerid,temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective){
+forward engine_turn_on(playerid,temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective);
+public engine_turn_on(playerid,temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective){
 	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER){
 	    new vehicleid=GetPlayerVehicleID(playerid);
 	    SetVehicleParamsEx(vehicleid,temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective);
@@ -6058,13 +6057,13 @@ IsValidVehicle(vehicleid){
 	    PlayerTextDrawHide(playerid,td_speed[playerid][TD_SPEED_FUEL]);
 	    PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_FUEL],C_GREY);
 	    PlayerTextDrawShow(playerid,td_speed[playerid][TD_SPEED_FUEL]);
-	    timer_speed[playerid]=SetTimerEx("@__speed",150,false,"i",playerid);
+	    timer_speed[playerid]=SetTimerEx("speed",150,false,"i",playerid);
 	}
 	return true;
 }
 
-@__speed(playerid,vehicleid);
-@__speed(playerid,vehicleid){
+forward speed(playerid,vehicleid);
+public speed(playerid,vehicleid){
     if(GetPlayerState(playerid) != PLAYER_STATE_DRIVER || !IsPlayerInAnyVehicle(playerid)){
         KillTimer(timer_speed[playerid]);
 	    return true;
@@ -6119,7 +6118,7 @@ IsValidVehicle(vehicleid){
 	PlayerTextDrawSetString(playerid,td_speed[playerid][TD_SPEED_FUEL],string);
 	format(string,sizeof(string),"%ikm/h",GetVehicleSpeed(temp_vehicleid));
 	PlayerTextDrawSetString(playerid,td_speed[playerid][TD_SPEED_SPEED],string);
-	timer_speed[playerid]=SetTimerEx("@__speed",150,false,"i",playerid,vehicleid);
+	timer_speed[playerid]=SetTimerEx("speed",150,false,"i",playerid,vehicleid);
 	return true;
 }
 
@@ -6315,14 +6314,22 @@ CMD:menu(playerid){
 	return true;
 }
 
-ALTX:menu("/mn","/mm");
+//ALTX:menu("/mn","/mm");
+
+CMD:mn(playerid){
+	return cmd_menu(playerid);
+}
+
+CMD:mm(playerid){
+	return cmd_menu(playerid);
+}
 
 CMD:takecheque(playerid){
 	if(!payday[playerid][taken] && payday[playerid][time]<PAYDAY_TIME){
 	    SendClientMessage(playerid,C_RED,"[Информация] На ваше имя не приходило чеков!");
 	    return true;
 	}
-	@__payday(playerid);
+	get_payday(playerid);
 	return true;
 }
 
@@ -6438,7 +6445,11 @@ CMD:try(playerid,params[]){
 	return true;
 }
 
-ALTX:try("/coin");
+//ALTX:try("/coin");
+
+CMD:coin(playerid,params[]){
+	return cmd_try(playerid,params);
+}
 
 CMD:atry(playerid,params[]){
     if(player[playerid][mute]){
@@ -6457,7 +6468,11 @@ CMD:atry(playerid,params[]){
 	return true;
 }
 
-ALTX:atry("/acoin");
+//ALTX:atry("/acoin");
+
+CMD:acoin(playerid,params[]){
+	return cmd_atry(playerid,params);
+}
 
 CMD:shout(playerid,params[]){
     if(player[playerid][mute]){
@@ -6475,7 +6490,11 @@ CMD:shout(playerid,params[]){
 	return true;
 }
 
-ALTX:shout("/s");
+//ALTX:shout("/s");
+
+CMD:s(playerid,params[]){
+	return cmd_shout(playerid,params);
+}
 
 CMD:ashout(playerid,params[]){
     if(player[playerid][mute]){
@@ -6493,7 +6512,11 @@ CMD:ashout(playerid,params[]){
 	return true;
 }
 
-ALTX:ashout("/as");
+//ALTX:ashout("/as");
+
+CMD:as(playerid,params[]){
+	return cmd_ashout(playerid,params);
+}
 
 CMD:whisper(playerid,params[]){
     if(player[playerid][mute]){
@@ -6522,7 +6545,11 @@ CMD:whisper(playerid,params[]){
 	return true;
 }
 
-ALTX:whisper("/w");
+//ALTX:whisper("/w");
+
+CMD:w(playerid,params[]){
+	return cmd_whisper(playerid,params);
+}
 
 CMD:n(playerid,params[]){
     if(player[playerid][mute]){
@@ -6539,7 +6566,11 @@ CMD:n(playerid,params[]){
 	return true;
 }
 
-ALTX:n("/b");
+//ALTX:n("/b");
+
+CMD:b(playerid,params[]){
+	return cmd_n(playerid,params);
+}
 
 CMD:an(playerid,params[]){
     if(player[playerid][mute]){
@@ -6557,14 +6588,22 @@ CMD:an(playerid,params[]){
 	return true;
 }
 
-ALTX:an("/ab");
+//ALTX:an("/ab");
+
+CMD:ab(playerid,params[]){
+	return cmd_an(playerid,params);
+}
 
 CMD:description(playerid){
 	ShowPlayerDialog(playerid,dDescription,DIALOG_STYLE_LIST,""BLUE"Описание персонажа","[0] Прикрепить временное описание\n[1] Прикрепить и сохранить описание\n[2] Прикрепить сохранённое описание\n[3] Изменить описание\n[4] Убрать описание","Выбрать","Отмена");
 	return true;
 }
 
-ALTX:description("/desc");
+//ALTX:description("/desc");
+
+CMD:desc(playerid){
+	return cmd_description(playerid);
+}
 
 // Команды для транспорта
 
@@ -6596,7 +6635,7 @@ CMD:engine(playerid){
 			PlayerTextDrawColor(playerid,td_speed[playerid][TD_SPEED_FUEL],C_RED);
 			PlayerTextDrawSetString(playerid,td_speed[playerid][TD_SPEED_FUEL],"fuel:eng_starting");
 			PlayerTextDrawShow(playerid,td_speed[playerid][TD_SPEED_FUEL]);
-	        SetTimerEx("@__engine_turn_on",500+random(500),false,"iiiiiiii",playerid,temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective);
+	        SetTimerEx("engine_turn_on",500+random(500),false,"iiiiiiii",playerid,temp_engine,temp_lights,temp_alarm,temp_doors,temp_bonnet,temp_boot,temp_objective);
 	    }
 	    case 1:{
 	        temp_engine=0;
@@ -6848,7 +6887,11 @@ CMD:faction(playerid,params[]){
 	return true;
 }
 
-ALTX:faction("/f");
+//ALTX:faction("/f");
+
+CMD:f(playerid,params[]){
+	return cmd_faction(playerid,params);
+}
 
 CMD:find(playerid){
 	if(!admin[playerid][commands][FIND]){
@@ -6884,7 +6927,11 @@ CMD:find(playerid){
 	return true;
 }
 
-ALTX:find("/members");
+//ALTX:find("/members");
+
+CMD:members(playerid){
+	return cmd_find(playerid);
+}
 
 CMD:fmenu(playerid){
 	if(!player[playerid][faction_id]){
@@ -6900,7 +6947,19 @@ CMD:fmenu(playerid){
 	return true;
 }
 
-ALTX:fmenu("/fpanel","/fp","/fm");
+//ALTX:fmenu("/fpanel","/fp","/fm");
+
+CMD:fpanel(playerid){
+	return cmd_fmenu(playerid);
+}
+
+CMD:fp(playerid){
+	return cmd_fmenu(playerid);
+}
+
+CMD:fm(playerid){
+	return cmd_fmenu(playerid);
+}
 
 CMD:lmenu(playerid){
 	if(!GetPVarInt(playerid,"IsPlayerLeader")){
@@ -6911,7 +6970,19 @@ CMD:lmenu(playerid){
 	return true;
 }
 
-ALTX:lmenu("/lpanel","/lp","/lm");
+//ALTX:lmenu("/lpanel","/lp","/lm");
+
+CMD:lpanel(playerid){
+	return cmd_lmenu(playerid);
+}
+
+CMD:lp(playerid){
+	return cmd_lmenu(playerid);
+}
+
+CMD:lm(playerid){
+	return cmd_lmenu(playerid);
+}
 
 // Команды для управления домом
 
@@ -6947,7 +7018,23 @@ CMD:home(playerid,params[]){
 	return true;
 }
 
-ALTX:home("/hmenu","/hpanel","/hm","/hp");
+//ALTX:home("/hmenu","/hpanel","/hm","/hp");
+
+CMD:hmenu(playerid,params[]){
+	return cmd_home(playerid,params);
+}
+
+CMD:hpanel(playerid,params[]){
+	return cmd_home(playerid,params);
+}
+
+CMD:hm(playerid,params[]){
+	return cmd_home(playerid,params);
+}
+
+CMD:hp(playerid,params[]){
+	return cmd_home(playerid,params);
+}
 
 CMD:buyhome(playerid){
 	if(owned_house_id[playerid][MAX_OWNED_HOUSES-1]){
@@ -6966,7 +7053,11 @@ CMD:buyhome(playerid){
 	return true;
 }
 
-ALTX:buyhome("/buyhouse");
+//ALTX:buyhome("/buyhouse");
+
+CMD:buyhouse(playerid){
+	return cmd_buyhome(playerid);
+}
 
 CMD:exit_preview(playerid){
 	if(!GetPVarInt(playerid,"AddHouse_Preview")){
@@ -7087,7 +7178,11 @@ CMD:buybusiness(playerid,params[]){
 	return true;
 }
 
-ALTX:buybusiness("/buybiz");
+//ALTX:buybusiness("/buybiz");
+
+CMD:buybiz(playerid,params[]){
+	return cmd_buybusiness(playerid,params);
+}
 
 CMD:business(playerid,params[]){
 	if(!owned_business_id[playerid][0]){
@@ -7121,7 +7216,23 @@ CMD:business(playerid,params[]){
 	return true;
 }
 
-ALTX:business("/bmenu","/bpanel","/bm","/bp");
+//ALTX:business("/bmenu","/bpanel","/bm","/bp");
+
+CMD:bmenu(playerid,params[]){
+	return cmd_business(playerid,params);
+}
+
+CMD:bpanel(playerid,params[]){
+	return cmd_business(playerid,params);
+}
+
+CMD:bm(playerid,params[]){
+	return cmd_business(playerid,params);
+}
+
+CMD:bp(playerid,params[]){
+	return cmd_business(playerid,params);
+}
 
 //Команды управления транспортом
 
@@ -7244,7 +7355,11 @@ CMD:sellcar(playerid){
 	return true;
 }
 
-ALTX:sellcar("/sellvehicle");
+//ALTX:sellcar("/sellvehicle");
+
+CMD:sellvehicle(playerid){
+	return cmd_sellcar(playerid);
+}
 
 //Команды для администраторов
 
@@ -7487,7 +7602,7 @@ CMD:ban(playerid,params[]){
 	new string[55-2-2-2-2+MAX_PLAYER_NAME+MAX_PLAYER_NAME+2+32];
 	format(string,sizeof(string),(!strcmp(temp_reason,"-"))?"[ ADMIN ] %s забанил игрока %s на %i дней":"[ ADMIN ] %s забанил игрока %s на %i дней. Причина: %s",player[playerid][name],player[temp_playerid][name],temp_days,temp_reason);
 	SendClientMessageToAll(C_RED,string);
-	SetTimerEx("@__kick_player",250,false,"i",temp_playerid);
+	SetTimerEx("kick_player",250,false,"i",temp_playerid);
 	return true;
 }
 
@@ -7649,7 +7764,7 @@ CMD:delacc(playerid,params[]){
 	sscanf(temp_name,"u",temp_playerid);
 	if(GetPVarInt(playerid,"PlayerLogged")){
 	    SendClientMessage(temp_playerid,C_RED,"Ваш аккаунт был удалён!");
-	    SetTimerEx("@__kick_player",250,false,"i",temp_playerid);
+	    SetTimerEx("kick_player",250,false,"i",temp_playerid);
 	}
 	new query[58-2+MAX_PLAYER_NAME];
 	mysql_format(mysql_connection,query,sizeof(query),"select`id`from`admins`where`name`='%e'",temp_name);
