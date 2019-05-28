@@ -1,6 +1,6 @@
 /*
 	Daniel's Command Processing Plugin
-	© 2012-2014, Daniel_Cortez
+	Â© 2012-2014, Daniel_Cortez
 
 You may use this plugin however you want.
 Just don't claim this work as yours and do not try to decompile/disassemble it, etc.
@@ -31,7 +31,7 @@ enum dc_cmd_script_type{
 
 
 	#define CMD:%0(%1)	\
-				public cmd_%0(%1);	\
+				forward cmd_%0(%1);	\
 				public cmd_%0(%1)
 
 	#define COMMAND:%1(%2)	\
@@ -41,12 +41,12 @@ enum dc_cmd_script_type{
 				CMD:%1(%2)
 
 	#define ALT:%0:%1; \
-				public cmd_%1(playerid, params[]);	\
+				forward cmd_%1(playerid, params[]);	\
 				public cmd_%1(playerid, params[])	\
 					return cmd_%0(playerid, params);
 
 	#define ALTX:%0(%1);	\
-		public alt_%0();	\
+		forward alt_%0();	\
 		public alt_%0()	\
 			RegisterAlt("/"#%0, %1);
 
