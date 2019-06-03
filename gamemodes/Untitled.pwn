@@ -1089,7 +1089,7 @@ public OnGameModeInit(){// Запускаем игровой мод
 	}
 	cache_delete(cache_businesses,mysql_connection);
 //	mysql_log(LOG_NONE);
-	SetGameModeText("DSHRK v0.034.r3");//Ставим название мода для клиента
+	SetGameModeText("dshrk v0.037.r3");//Ставим название мода для клиента
 	SendRconCommand("hostname DOSHIRAK PROJECT");//Ставим название сервера для клиента через RCON
 	SendRconCommand("weburl vk.com/d1maz.community");
 	SendRconCommand("language Russian");
@@ -1215,13 +1215,16 @@ public OnPlayerConnect(playerid){// Подключаемся к серверу
 }
 
 public OnPlayerDisconnect(playerid,reason){
-	#pragma unused reason
 	if(GetPVarInt(playerid,"PlayerLogged")){
 		new temp_payday[24];
 		format(temp_payday,sizeof(temp_payday),"%i|%i|%i",payday[playerid][time],payday[playerid][salary],payday[playerid][taken]);
-	    new query[56-2-2-2+sizeof(temp_payday)+3+11];
+	    new query[104-2-2-2+11+32+11];
 	    mysql_format(mysql_connection,query,sizeof(query),"update`users`set`payday`='%e',`mute`='%i'where`id`='%i'",temp_payday,player[playerid][mute],player[playerid][id]);
 	    mysql_query(mysql_connection,query,false);
+		new temp_reason[32];
+		format(temp_reason,sizeof(temp_reason),(reason==0)?"Вылет":(reason==1)?"Выход из игры":"Кик/Бан");
+		mysql_format(mysql_connection,query,sizeof(query),"update`connects`set`disconnect_time`='%i',`reason`='%e'where`id`='%i'order by`connect_time`desc limit 1",gettime(),temp_reason,player[playerid][id]);		
+		mysql_query(mysql_connection,query,false);
 	    if(attached_3dtext[playerid]){
 	        Delete3DTextLabel(attach_3dtext_labelid[playerid]);
 	        attached_3dtext[playerid]=false;
@@ -1895,27 +1898,29 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 			            ShowPlayerDialog(playerid,dMainMenuInfAboutPersAccount,DIALOG_STYLE_MSGBOX,""BLUE"Информация об аккаунте",string,"Назад","");
 					}
 					case 2:{//Информация о последних подключениях
-						new query[73-2+11];
-						mysql_format(mysql_connection,query,sizeof(query),"select`date`,`ip`from`connects`where`id`='%i'order by`date`desc limit 15",player[playerid][id]);
+						new query[116-2+11];
+						mysql_format(mysql_connection,query,sizeof(query),"select`connect_time`,`ip`,`reason`,`disconnect_time`from`connects`where`id`='%i'order by`connect_time`desc limit 30",player[playerid][id]);						
 						new Cache:cache_connects=mysql_query(mysql_connection,query);
 						if(cache_get_row_count(mysql_connection)){
-						    new temp_date[32],temp_ip[16],temp_string[13-2-2-2+11+32+16];
-						    new temp_ip_color[24];
-						    static string[sizeof(temp_string)*15];
-						    string=""BLUE"№\t"WHITE"Дата\t"WHITE"IP адрес\n";
+						    new temp_connect_time,temp_ip[16],temp_reason[32],temp_disconnect_time,temp_string[25-2-2-2-2-2+2+20+24+20+32];
+						    new temp_ip_color[19-2+16];
+						    static string[sizeof(temp_string)*31];
+						    string=""BLUE"№"WHITE" - Дата подключения - IP адрес - Дата отключения - Причина\n\n";
 						    for(new i=0; i<cache_get_row_count(mysql_connection); i++){
-								cache_get_field_content(i,"date",temp_date,mysql_connection,sizeof(temp_date));
+								temp_connect_time=cache_get_field_content_int(i,"connect_time",mysql_connection);
+								temp_disconnect_time=cache_get_field_content_int(i,"disconnect_time",mysql_connection);
 								cache_get_field_content(i,"ip",temp_ip,mysql_connection,sizeof(temp_ip));
+								cache_get_field_content(i,"reason",temp_reason,mysql_connection,sizeof(temp_reason));
 								if(!strcmp(temp_ip,player[playerid][reg_ip])){
-								    format(temp_ip_color,sizeof(temp_ip_color),""GREEN"%s",temp_ip);
+								    format(temp_ip_color,sizeof(temp_ip_color),""GREEN"%s"WHITE"",temp_ip);									
 								}
 								else{
-								    format(temp_ip_color,sizeof(temp_ip_color),""RED"%s",temp_ip);
+								    format(temp_ip_color,sizeof(temp_ip_color),""RED"%s"WHITE"",temp_ip);
 								}
-								format(temp_string,sizeof(temp_string),"%i\t%s\t%s\n",i,temp_date,temp_ip_color);
+								format(temp_string,sizeof(temp_string),"%i - %s - %s - %s - %s\n",i,gettimestamp(temp_connect_time),temp_ip_color,(temp_disconnect_time==0 && i==0)?""GREEN"ONLINE"WHITE"":gettimestamp(temp_disconnect_time),temp_reason);
 								strcat(string,temp_string);
 						    }
-						    ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_TABLIST_HEADERS,""BLUE"Информация о последних подключениях",string,"Закрыть","");
+						    ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_MSGBOX,""BLUE"Информация о последних подключениях",string,"Закрыть","");
 						    string="";
 						}
 						else{
@@ -5158,6 +5163,9 @@ public OnPlayerEnterCheckpoint(playerid){
 }
 
 public OnGameModeExit(){
+	foreach(new i:Player){
+		OnPlayerDisconnect(i,0);
+	}
 	KillTimer(timer_general);
 	KillTimer(timer_minute);
 	return true;
@@ -5357,6 +5365,8 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid){
 			cache_users=mysql_query(mysql_connection,query);
 			cache_get_field_content(0,"reg_date",player[playerid][reg_date],mysql_connection,32);
 			cache_delete(cache_users,mysql_connection);
+			mysql_format(mysql_connection,query,sizeof(query),"insert into`connects`(`id`,`ip`,`connect_time`)values('%i','%e','%i')",player[playerid][id],temp_ip,gettime());
+			mysql_query(mysql_connection,query);
 			for(new i=0; i<sizeof(td_register[]); i++){
 			    PlayerTextDrawHide(playerid,td_register[playerid][i]);
 			}
@@ -5442,7 +5452,7 @@ public OnPlayerClickPlayerTextDraw(playerid, PlayerText:playertextid){
 				cache_set_active(cache_users,mysql_connection);
 				new temp_ip[16];
 				GetPlayerIp(playerid,temp_ip,sizeof(temp_ip));
-				mysql_format(mysql_connection,query,sizeof(query),"insert into`connects`(`id`,`ip`)values('%i','%e')",player[playerid][id],temp_ip);
+				mysql_format(mysql_connection,query,sizeof(query),"insert into`connects`(`id`,`ip`,`connect_time`)values('%i','%e','%i')",player[playerid][id],temp_ip,gettime());
 				mysql_query(mysql_connection,query);
 				if(player[playerid][faction_id]){
 				    new temp_faction_id=player[playerid][faction_id];
@@ -5941,40 +5951,45 @@ ProxDetector(Float:radi, playerid, string[],col1,col2,col3,col4,col5){
 	return true;
 }
 
-gettimestamp (timestamp, _form=0){
-    new
-        year=1970, day=0, month=0, hour=0, mins=0, sec=0,
-		days_of_month[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 },
-    	names_of_month[12][10] = {"January","February","March","April","May","June","July","August","September","October","November","December"},
-    	returnstring[32];
-    while(timestamp>31622400){
-        timestamp -= 31536000;
-        if ( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ){ 
-			timestamp -= 86400;
+gettimestamp (timestamp, _form=1){
+	new returnstring[32];
+	if(timestamp){
+		new
+			year=1970, day=0, month=0, hour=0, mins=0, sec=0,
+			days_of_month[12] = { 31,28,31,30,31,30,31,31,30,31,30,31 },
+			names_of_month[12][10] = {"January","February","March","April","May","June","July","August","September","October","November","December"};
+		while(timestamp>31622400){
+			timestamp -= 31536000;
+			if ( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ){ 
+				timestamp -= 86400;
+			}
+			year++;
 		}
-        year++;
-    }
-    if ( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ){
-        days_of_month[1] = 29;
+		if ( ((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0) ){
+			days_of_month[1] = 29;
+		}
+		else{
+			days_of_month[1] = 28;
+		}
+		while(timestamp>86400){
+			timestamp -= 86400, day++;
+			if(day==days_of_month[month]) day=0, month++;
+		}
+		while(timestamp>60){
+			timestamp -= 60, mins++;
+			if( mins == 60) mins=0, hour++;
+		}
+		sec=timestamp;
+		switch( _form ){
+			case 1: format(returnstring, 31, "%02d/%02d/%d %02d:%02d:%02d", day+1, month+1, year, hour, mins, sec);
+			case 2: format(returnstring, 31, "%s %02d, %d, %02d:%02d:%02d", names_of_month[month],day+1,year, hour, mins, sec);		
+			case 3: format(returnstring, 31, "%d %c%c%c %d, %02d:%02d", day+1,names_of_month[month][0],names_of_month[month][1],names_of_month[month][2], year,hour,mins);
+			default: format(returnstring, 31, "%02d.%02d.%d-%02d:%02d:%02d", day+1, month+1, year, hour, mins, sec);
+		}
 	}
-    else{
-        days_of_month[1] = 28;
+	else{
+		returnstring="нет данных";
 	}
-    while(timestamp>86400){
-        timestamp -= 86400, day++;
-        if(day==days_of_month[month]) day=0, month++;
-    }
-    while(timestamp>60){
-        timestamp -= 60, mins++;
-        if( mins == 60) mins=0, hour++;
-    }
-    sec=timestamp;
-    switch( _form ){
-        case 1: format(returnstring, 31, "%02d/%02d/%d %02d:%02d:%02d", day+1, month+1, year, hour, mins, sec);
-        case 2: format(returnstring, 31, "%s %02d, %d, %02d:%02d:%02d", names_of_month[month],day+1,year, hour, mins, sec);
-        case 3: format(returnstring, 31, "%d %c%c%c %d, %02d:%02d", day+1,names_of_month[month][0],names_of_month[month][1],names_of_month[month][2], year,hour,mins);
-        default: format(returnstring, 31, "%02d.%02d.%d-%02d:%02d:%02d", day+1, month+1, year, hour, mins, sec);
-    }
     return returnstring;
 }
 
@@ -7370,8 +7385,8 @@ CMD:admins(playerid){
 	}
 	new Cache:admins=mysql_query(mysql_connection,"select`name`from`admins`");
 	if(cache_get_row_count(mysql_connection)){
-	    new temp_name[MAX_PLAYER_NAME],temp_playerid,temp_online[41],temp_id,temp_date[24];
-	    new query[67-2+11];
+	    new temp_name[MAX_PLAYER_NAME],temp_playerid,temp_online[41],temp_id,temp_date;
+	    new query[75-2+11];
 	    new temp_string[25-2-2-2+2+MAX_PLAYER_NAME+41];
 	    static string[sizeof(temp_string)*20];
 	    string="\n";
@@ -7387,11 +7402,11 @@ CMD:admins(playerid){
 				new Cache:users=mysql_query(mysql_connection,query);
 				if(cache_get_row_count(mysql_connection)){
 					temp_id=cache_get_field_content_int(0,"id",mysql_connection);
-					mysql_format(mysql_connection,query,sizeof(query),"select`date`from`connects`where`id`='%i'order by`date`desc limit 1",temp_id);
+					mysql_format(mysql_connection,query,sizeof(query),"select`disconnect_time`from`connects`where`id`='%i'order by`disconnect_time`desc limit 1",temp_id);
 					new Cache:connects=mysql_query(mysql_connection,query);
 					if(cache_get_row_count(mysql_connection)){
-						cache_get_field_content(0,"date",temp_date,mysql_connection,sizeof(temp_date));
-						format(temp_online,sizeof(temp_online),""RED"Offline | %s",temp_date);
+						temp_date=cache_get_field_content_int(0,"disconnect_time",mysql_connection);
+						format(temp_online,sizeof(temp_online),""RED"Offline | %s",gettimestamp(temp_date));
 					}
 					cache_delete(connects,mysql_connection);
 				}
