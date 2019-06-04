@@ -1089,7 +1089,7 @@ public OnGameModeInit(){// Запускаем игровой мод
 	}
 	cache_delete(cache_businesses,mysql_connection);
 //	mysql_log(LOG_NONE);
-	SetGameModeText("dshrk v0.037.r3");//Ставим название мода для клиента
+	SetGameModeText("dshrk v0.038.r3");//Ставим название мода для клиента
 	SendRconCommand("hostname DOSHIRAK PROJECT");//Ставим название сервера для клиента через RCON
 	SendRconCommand("weburl vk.com/d1maz.community");
 	SendRconCommand("language Russian");
@@ -1422,16 +1422,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[]){
 							ShowPlayerDialog(playerid,dAuthorizationSpawn,DIALOG_STYLE_LIST,""BLUE"Выбор спавна",string,"Выбрать","");
 						   	return true;
 						}
-						new temp_string[11-2+4];
-						new string[sizeof(temp_string)*MAX_OWNED_HOUSES];
-                        for(new i=0; i<MAX_OWNED_HOUSES; i++){
-						    if(!owned_house_id[playerid][i]){
-						        continue;
-						    }
-							format(temp_string,sizeof(temp_string),"[%i] №%i\n",i,owned_house_id[playerid][i]);
-							strcat(string,temp_string);
-						}
-						ShowPlayerDialog(playerid,dAuthorizationSpawnHouse,DIALOG_STYLE_LIST,""BLUE"Выбор спавна",string,"Выбрать","Назад");
+						ShowPlayerDialog(playerid,dAuthorizationSpawnHouse,DIALOG_STYLE_LIST,""BLUE"Выбор спавна",listOfProperty(playerid,1),"Выбрать","Назад");
 		            }
 		        }
 		    }
@@ -7007,30 +6998,51 @@ CMD:home(playerid,params[]){
 	   	return true;
 	}
 	if(sscanf(params,"i",params[0])){
-		new temp_string[11-2-2+1+4];
-		new string[sizeof(temp_string)*MAX_OWNED_HOUSES];
-		for(new i=0; i<MAX_OWNED_HOUSES; i++){
-		    if(!owned_house_id[playerid][i]){
-		        continue;
-		    }
-			format(temp_string,sizeof(temp_string),"[%i] №%i\n",i,owned_house_id[playerid][i]);
-			strcat(string,temp_string);
-		}
-		ShowPlayerDialog(playerid,dHome,DIALOG_STYLE_LIST,""BLUE"Панель управления домом",string,"Выбрать","Отмена");
+		ShowPlayerDialog(playerid,dHome,DIALOG_STYLE_LIST,""BLUE"Панель управления домом",listOfProperty(playerid,1),"Выбрать","Отмена");
 		return true;
 	}
 	if(!owned_house_id[playerid][params[0]]){
 	    ShowPlayerDialog(playerid,NULL,DIALOG_STYLE_MSGBOX,""RED"Ошибка","\n"WHITE"Извините, произошла ошибка!\n\n","Закрыть","");
 	    return true;
 	}
+	new houseid=owned_house_id[playerid][params[0]];
+    SetPVarInt(playerid,"tempSelectedHouseid",params[0]);
+	showHouseMenu(playerid,houseid);
+	return true;
+}
+
+showHouseMenu(playerid,houseid){
 	new temp_lock[20];
 	new string[55-2+sizeof(temp_lock)];
-	new houseid=owned_house_id[playerid][params[0]];
-	temp_lock=house[houseid-1][locked]?""RED"[ закрыт ]":""GREEN"[ открыт ]";
-    format(string,sizeof(string),"[0] Информация о доме\n[1] Замок - %s\n[2] Продать дом",temp_lock);
-    SetPVarInt(playerid,"tempSelectedHouseid",params[0]);
+	format(temp_lock,sizeof(temp_lock),house[houseid-1][locked]?""RED"[ закрыт ]":""GREEN"[ открыт ]");
+	format(string,sizeof(string),"[0] Информация о доме\n[1] Замок - %s\n[2] Продать дом",temp_lock);
     ShowPlayerDialog(playerid,dHomeMenu,DIALOG_STYLE_LIST,""BLUE"Панель управления домом",string,"Выбрать","Отмена");
-	return true;
+}
+
+listOfProperty(playerid,typeOfProperty=0){
+	static returnstring[768];
+	returnstring="";
+	switch(typeOfProperty){
+		case 1:{//дома
+			if(!owned_house_id[playerid][0]){
+				format(returnstring,sizeof(returnstring),""RED"извините, произошла ошибка!\nобратитесь к системному администратору!\n#H1");
+			}
+			else{
+				new temp_string[15-2-2+1+4];
+				for(new i=0; i<MAX_OWNED_HOUSES; i++){
+					if(!owned_house_id[playerid][i]){
+						continue;
+					}
+					format(temp_string,sizeof(temp_string),"[%i] H-ID %i\n",i,owned_house_id[playerid][i]);					
+					strcat(returnstring,temp_string);
+				}
+			}
+		}
+		default:{
+			format(returnstring,sizeof(returnstring),""RED"извините, произошла ошибка!\nобратитесь к системному администратору!\n#LOP1");
+		}
+	}
+	return returnstring;
 }
 
 //ALTX:home("/hmenu","/hpanel","/hm","/hp");
